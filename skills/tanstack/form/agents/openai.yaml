@@ -1,0 +1,4 @@
+interface:
+  display_name: "TanStack Form"
+  short_description: "Build TanStack Form with official docs."
+  default_prompt: "Use $tanstack-form to implement a documented TanStack Form workflow."
