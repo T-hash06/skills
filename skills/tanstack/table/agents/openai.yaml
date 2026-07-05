@@ -1,0 +1,4 @@
+interface:
+  display_name: "TanStack Table"
+  short_description: "Build TanStack Table with official docs."
+  default_prompt: "Use $tanstack-table to implement a documented TanStack Table feature."
