@@ -1,46 +1,75 @@
 ---
 name: tanstack-table
-description: "Build, debug, refactor, or document TanStack Table implementations across frameworks, especially React, using official TanStack Table documentation links as the source of truth. Use for table instances, column definitions, row models, cells, headers, table state, sorting, filtering, faceting, grouping, pagination, selection, pinning, sizing, visibility, virtualization, custom features, or TanStack Table APIs."
+description: "Build, debug, refactor, review, or document TanStack Table implementations across frameworks, especially React, using official TanStack Table documentation as the source of truth. Use for table architecture, data and column modeling, row models, rendering, table state, sorting, filtering, faceting, grouping, expanding, pagination, row selection, pinning, sizing, visibility, ordering, virtualization, custom features, performance, best practices, antipatterns, or TanStack Table APIs."
 ---
 
 # TanStack Table
 
-Use this skill to work with TanStack Table from the official documentation first, then adapt the guidance to the user's framework, codebase, and table UX requirements.
+Use this skill to produce production-grade TanStack Table work from the official documentation first, then adapt the result to the user's framework, data model, UI conventions, performance constraints, and table UX requirements.
 
-## Documentation Index
+## Core Workflow
 
-Start with [references/official-docs.md](references/official-docs.md). It maps every official TanStack Table documentation link to a short "contains" and "use when" note so agents can decide which upstream docs to load for the task at hand.
+1. Identify the framework adapter, installed package version if available, row data shape, server/client ownership model, table features, persistence needs, and UI component system.
+2. Open [references/official-docs.md](references/official-docs.md) and route to the relevant official TanStack Table guide or API reference before relying on memory.
+3. Open [references/practices.md](references/practices.md) when designing, reviewing, refactoring, or debugging non-trivial tables. Use it for good practices, antipatterns, production examples, and advanced feature interactions.
+4. Define the row data type, stable `data` source, stable `columns`, column IDs, row IDs, and table state ownership before wiring feature UI.
+5. Decide whether each feature is client-side or server-side. Keep sorting, filtering, grouping, faceting, and pagination consistent across the same dataset.
+6. Add only the row models required by enabled client-side features. Start with `getCoreRowModel`, then add filtered, grouped, sorted, expanded, pagination, and faceting row models as needed.
+7. Control only the state that the app needs to persist, synchronize, query, or inspect. Leave the rest internal.
+8. Render with adapter utilities such as `flexRender`, visibility-aware cell APIs, accessible markup, and the host app's components.
+9. Run focused tests or provide exact test guidance for row counts, sorting/filtering output, server query params, pagination boundaries, selected IDs, visibility/pinning/sizing state, grouping/expansion output, and virtualization behavior.
 
-Use the notes as routing help only. Prefer the linked official docs over memory whenever behavior, option names, or API signatures matter.
+## Documentation Routing
+
+Use [references/official-docs.md](references/official-docs.md) as the official upstream map. It lists every TanStack Table documentation link with a short "contains" and "use when" note.
+
+Use the notes as routing help only. Prefer the linked official docs over memory whenever behavior, option names, method names, or API signatures matter.
 
 Use this reading order for most tasks:
 
 1. Read installation and framework adapter docs when setup, imports, package names, or React integration are involved.
-2. Read core concept guides for data, columns, tables, row models, rows, cells, headers, and state.
-3. Read the feature guide for the requested behavior.
-4. Read the matching API reference before finalizing option names, method names, and return types.
+2. Read core concept guides for data, column definitions, tables, row models, rows, cells, headers, and state.
+3. Read [references/practices.md](references/practices.md) for production patterns, antipatterns, and advanced examples when the table is larger than a tiny static display.
+4. Read the feature guide for the requested behavior: sorting, filtering, faceting, grouping, expanding, pagination, selection, ordering, visibility, pinning, sizing, virtualization, or custom features.
+5. Read the matching API reference before finalizing option names, method names, state shapes, handler signatures, and return types.
 
-## Working Principles
+## Practice Priorities
 
-- Treat TanStack Table as a headless table engine. Build rendering, styling, accessibility markup, and interaction surfaces in the host app's UI conventions.
-- Prefer the current official docs over remembered v7 or older patterns. Confirm v8 APIs such as `useReactTable`, `getCoreRowModel`, feature row models, and table state options before coding.
-- Keep `data` and `columns` stable in React implementations. Use memoization or stable module-level definitions when the surrounding code requires it.
-- Define column IDs deliberately when using `accessorFn`, computed columns, grouping, visibility, ordering, filtering, or persisted user preferences.
-- Add only the row models required by enabled features. Start with `getCoreRowModel`, then add sorting, filtering, grouping, expanding, pagination, or faceting models as needed.
-- Decide early whether each feature is client-side or server-side. Use manual modes for server-owned sorting, filtering, pagination, grouping, or faceting instead of mixing incompatible row-model behavior.
-- Control state only when the app needs to observe, persist, synchronize, or server-drive it. Otherwise prefer TanStack Table's internal state to keep the implementation smaller.
-- Keep column definitions focused on data access and table semantics. Put bulky UI components, menus, and formatting helpers in surrounding components when that matches the codebase.
-- Validate large datasets with virtualization guidance and the host UI constraints before adding expensive row models or rendering every row.
-- Test table behavior at the feature boundary: row counts, column visibility, selected row IDs, sorted order, filter output, pagination state, and pinned or grouped output.
+- Treat TanStack Table as a headless table engine. Let the host app own semantic markup, layout, styling, accessibility, menus, inputs, buttons, and empty/loading/error states.
+- Keep `data` and `columns` stable in React. Avoid inline arrays, inline fallbacks, and column definitions recreated on every render.
+- Make column IDs explicit when using `accessorFn`, computed columns, display columns, persisted state, column visibility, ordering, grouping, pinning, sizing, or server query contracts.
+- Use accessors for values that participate in sorting, filtering, grouping, and faceting. Use `cell` renderers for presentation.
+- Use stable domain IDs with `getRowId` when rows can be selected, expanded, updated, reordered, paginated manually, or synced to APIs.
+- Keep client-side and server-side feature ownership consistent. Do not client-sort a single loaded page while server-paginating the full dataset unless that partial-sort UX is intentional and clearly named.
+- Use visibility-aware APIs such as `row.getVisibleCells()` when column visibility is enabled.
+- Prefer pagination for page-oriented workflows, virtualization for continuous scrolling over large loaded datasets, and server pagination for datasets that cannot reasonably be loaded.
 
-## Implementation Checklist
+## Antipattern Alerts
 
-1. Identify the framework adapter, package version if available, data shape, and table ownership model.
-2. Choose column definitions and row IDs before enabling features that depend on identity or persistence.
-3. Build the smallest table instance that satisfies the request.
-4. Add feature options one at a time and cross-check each with the relevant guide plus API page in [references/official-docs.md](references/official-docs.md).
-5. Match rendering code to the app's existing component and accessibility patterns.
-6. Run or propose focused tests for user-visible behavior and state transitions.
+- Do not define `data`, `columns`, or `data ?? []` inline in React table components.
+- Do not pass both `initialState.someFeature` and `state.someFeature`; controlled `state` overrides `initialState`.
+- Do not provide `onSortingChange`, `onPaginationChange`, or another `on[State]Change` without also passing the matching `state` value.
+- Do not fully control all table state by default. High-frequency state such as `columnSizingInfo` can create avoidable performance problems.
+- Do not use row indexes as row IDs for row selection or server-side pagination.
+- Do not render hidden columns with `row.getAllCells()` when column visibility is active.
+- Do not expect `getSelectedRowModel()` to include selected rows outside the current `data` array during `manualPagination`.
+- Do not return objects or arrays from accessor functions unless custom sorting/filtering/grouping functions handle those values.
+- Do not add expensive row models or faceting helpers when the app is using manual server-side behavior.
+- Do not assume TanStack Table includes virtualization. Use TanStack Virtual or another virtualization library.
+
+## Advanced Topics
+
+Read the dedicated official guide and [references/practices.md](references/practices.md) before implementing these:
+
+- Server-driven tables with TanStack Query and controlled sorting/filtering/pagination.
+- Fuzzy filtering and rank-aware fuzzy sorting.
+- Faceted filters with client-side row models or server-provided facet values.
+- Selection across manual pagination and bulk actions by stable row ID.
+- Column visibility, ordering, pinning, and sizing with persisted user preferences.
+- Grouping with aggregation and expansion.
+- Virtualized rows/columns or infinite scrolling.
+- Editable tables using `table.options.meta`.
+- Reusable custom features with `_features` and declaration merging.
 
 ## Maintenance
 
@@ -53,3 +82,5 @@ pwsh -File skills/tanstack/table/scripts/validate-doc-links.ps1
 ```
 
 Each validator compares every URL in the annotated documentation map against the embedded expected official-doc list, fails on missing links, extra links, duplicates, missing section headings, or missing annotations, and does not use the network.
+
+After changing the skill, run the repository or skill validation available in the current workspace. If no project-level validation exists, run the documentation-link validator and the system `quick_validate.py` script for this skill folder.
