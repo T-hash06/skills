@@ -73,9 +73,9 @@ Read the dedicated official guide and [references/practices.md](references/pract
 Run one or more static validators after editing [references/official-docs.md](references/official-docs.md):
 
 ```bash
-bash skills/tanstack/form/scripts/validate-doc-links.sh
-fish skills/tanstack/form/scripts/validate-doc-links.fish
-pwsh -File skills/tanstack/form/scripts/validate-doc-links.ps1
+bash <path_to_skill>/scripts/validate-doc-links.sh
+fish <path_to_skill>/scripts/validate-doc-links.fish
+pwsh -File <path_to_skill>/scripts/validate-doc-links.ps1
 ```
 
 Each validator compares every URL in the annotated documentation map against the embedded expected official-doc list, fails on missing links, extra links, duplicates, missing section headings, or missing annotations, and does not use the network.
